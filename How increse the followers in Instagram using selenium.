@@ -1,0 +1,125 @@
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from time import sleep, strftime
+from random import randint
+import pandas as pd
+from selenium.webdriver.support.ui import WebDriverWait
+#from secrets import username, password
+from selenium.webdriver.common.by import By
+
+class Instabot :
+    def __init__(self,uname,pw):
+        self.uname = uname
+        self.pw = pw
+        self.driver = webdriver.Chrome()
+        self.driver.get("https://www.instagram.com/")
+        self.driver.maximize_window()
+        sleep(2)
+
+        #logging_in
+        self.logging_function(self.driver.find_element_by_xpath("//input[@name=\"username\"]"),self.driver.find_element_by_xpath("//input[@name=\"password\"]"),uname,pw)
+        sleep(4)
+        self.driver.find_element_by_xpath("//button[contains(text(),'Not Now')]").click()
+        sleep(3)
+        self.driver.find_element_by_xpath("//button[contains(text(),'Not Now')]").click()
+
+        #increase_followers
+        self.increase_followers()
+
+
+    def logging_function(self,d1,d2,uname,pw):
+        for character in uname :
+            d1.send_keys(character)
+            #sleep(0.3)
+        for character in pw :
+            d2.send_keys(character)
+            #sleep(0.3)
+        self.driver.find_element_by_xpath('//button[@type="submit"]').click()
+
+
+    def increase_followers(self):
+        self.driver.find_element_by_xpath('//*[@id="react-root"]/section/nav/div[2]/div/div/div[3]/div/div[3]/a').click()
+
+        hashtag_list = ['#travel','nature','#travelnature']
+
+        prev_user_list = []
+        new_followed = []
+        tag = -1
+        followed = 0
+        likes = 0
+        comments = 0
+        # If it's the first time you run it, use this line and comment the two below
+        # prev_user_list = pd.read_csv('20181203-224633_users_followed_list.csv', delimiter=',').iloc[:,1:2]  # useful to build a user log
+        # prev_user_list = list(prev_user_list['0'])
+        tag=0
+        for hashtag in hashtag_list :
+            sleep(2)
+            tag+=1
+            self.driver.find_element_by_xpath('//*[@id="react-root"]/section/nav/div[2]/div/div/div[2]/input').send_keys(hashtag)
+            sleep(2)
+            self.driver.find_element_by_xpath("//*[@id=\"react-root\"]/section/nav/div[2]/div/div/div[2]/div[2]/div[2]/div/a[1]/div").click()
+            sleep(10)
+            #clicking second pic in the tag list.
+            self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/article/div[1]/div/div/div[1]/div[2]/a').click()
+            sleep(randint(1, 2))
+
+
+            for x in range(randint(5,10)):
+                sleep(3)
+
+                username = self.driver.find_element_by_class_name('e1e1d').text
+                print(username)
+                sleep(2)
+                print("Took username")
+                sleep(2)
+
+                if self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[2]/button').text=="Follow" :
+                    #Following the page
+                    self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[2]/button').click()
+                    new_followed.append(username)
+                    sleep(3)
+                    print("Following")
+
+                    #liking pic
+                    self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/div[2]/section[1]/span[1]/button').click()
+                    likes += 1
+                    print("liked")
+                    sleep(4)
+
+                    #Commenting
+                    comm_prob = randint(5,10)
+                    print(comm_prob)
+                    sleep(3)
+                    if comm_prob > 7:
+                        comments += 1
+                        comment_box = self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/div[2]/section[3]/div/form/textarea')
+                        sleep(randint(3,10))
+
+                        if (comm_prob < 7):
+                            comment_box.send_keys('Really cool!')
+                            sleep(3)
+                        elif (comm_prob > 6) and (comm_prob < 9):
+                            comment_box.send_keys('Nice work :)')
+                            sleep(3)
+                        elif comm_prob == 9:
+                            comment_box.send_keys('Nice gallery!!')
+                            sleep(3)
+                        elif comm_prob == 10:
+                            comment_box.send_keys('So cool! :)')
+                            sleep(3)
+                        print("For commenting")
+
+                        # Enter to post comment
+                        self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/div[2]/section[3]/div/form/button').click()
+                        sleep(5)
+                        self.driver.find_element_by_xpath('/html/body/div[4]/div[1]/div/div/a[2]').click()
+                        print("Clicked Next in if")
+                else :
+                    self.driver.find_element_by_xpath('/html/body/div[4]/div[1]/div/div/a[2]').click()
+                    print("Cliked next in else")
+                    sleep(4)
+
+
+            self.driver.find_element_by_xpath('/html/body/div[4]/div[3]/button').click()
+
+bot = Instabot('username','password')
